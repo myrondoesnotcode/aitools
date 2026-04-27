@@ -331,13 +331,21 @@ input.api-input:focus { border-color: var(--text3); }
 
 /* Mobile */
 @media (max-width: 768px) {
+  header { padding: 14px 16px; }
+  .header-note { display: none; }
   .main { grid-template-columns: 1fr; }
   .left {
     position: static; height: auto;
     border-right: none; border-bottom: 1px solid var(--border);
+    padding: 20px 16px; gap: 16px;
   }
+  .btn-run { margin-top: 4px; }
   .right { padding: 20px 16px; }
   .model-grid { grid-template-columns: 1fr 1fr; }
+  .model-btn { padding: 12px 10px; min-height: 44px; }
+  .card-header { padding: 12px 14px; }
+  .card-prompt { padding: 14px; }
+  .card-changes { padding: 12px 14px; }
 }
 
 @media print {
@@ -501,7 +509,7 @@ claude: `CLAUDE PROMPT ENGINEERING (from Anthropic official guide):
 4. SPECIFY OUTPUT FORMAT PRECISELY: Tell Claude exactly how to format the response — length, structure, markdown usage, tone. Claude will match it precisely.
 5. FEW-SHOT EXAMPLES: For non-trivial formats, show 2-3 examples inside <examples> tags. Claude pattern-matches strongly.
 6. CHAIN OF THOUGHT: Add "Think through this step by step before responding" or wrap reasoning in <thinking> tags. Claude performs better on complex tasks with scratchpad space.
-7. PREFILL THE ASSISTANT TURN: End with the first token of Claude's response to constrain format (e.g., end with "```json" to force JSON output).
+7. PREFILL THE ASSISTANT TURN: End with the first token of Claude's response to constrain format (e.g., end with "\`\`\`json" to force JSON output).
 8. POSITIVE FRAMING: Say what TO do, not what NOT to do. "Respond only with code" works better than "Don't add explanations."
 9. DOCUMENT PLACEMENT: For prompts with long documents, place the document BEFORE the instructions, not after.
 10. CALIBRATE LENGTH: Explicitly state desired response length. "In 2-3 sentences" or "Comprehensive, with subsections."`,

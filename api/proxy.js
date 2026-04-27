@@ -34,9 +34,7 @@ export default async function handler(req, res) {
     if (!apiKey) return res.status(500).json({ error: { type: 'config', message: 'API key not configured on server.' } });
 
   try {
-        const buffers = [];
-        for await (const chunk of req) buffers.push(chunk);
-        const body = Buffer.concat(buffers).toString();
+        const body = JSON.stringify(req.body);
 
       const upstream = await fetch('https://api.anthropic.com/v1/messages', {
               method: 'POST',
