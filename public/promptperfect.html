@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptPerfect — Optimize for Every Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #080b0f;
+  --surface: #0e1218;
+  --surface2:#141920;
+  --border:  #1c2330;
+  --border2: #243040;
+  --text:    #dde4ef;
+  --text2:   #4a5568;
+  --text3:   #7a8ea8;
+  --claude:  #e07060;
+  --gpt:     #3ecf8e;
+  --gemini:  #4ab4f5;
+  --llama:   #f5a623;
+  --mistral: #a78bfa;
+  --grok:    #e8d44d;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  min-height: 100vh;
+}
+
+/* ─── LAYOUT ─── */
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+
+header {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(8,11,15,0.92);
+  backdrop-filter: blur(12px);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+}
+.logo-mark span {
+  border-radius: 2px;
+}
+.logo-mark span:nth-child(1) { background: var(--claude); }
+.logo-mark span:nth-child(2) { background: var(--gpt); }
+.logo-mark span:nth-child(3) { background: var(--gemini); }
+.logo-mark span:nth-child(4) { background: var(--llama); }
+
+.header-note {
+  font-size: 10px; color: var(--text2); letter-spacing: 0.06em;
+}
+
+/* ─── MAIN SPLIT ─── */
+.main {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  min-height: calc(100vh - 61px);
+}
+
+/* ─── LEFT PANEL ─── */
+.left {
+  border-right: 1px solid var(--border);
+  padding: 28px 24px;
+  display: flex; flex-direction: column; gap: 24px;
+  position: sticky; top: 61px;
+  height: calc(100vh - 61px);
+  overflow-y: auto;
+}
+
+.panel-label {
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 10px;
+}
+
+textarea#prompt-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; line-height: 1.75;
+  padding: 14px;
+  resize: none; outline: none;
+  min-height: 200px;
+  transition: border-color 0.2s;
+}
+textarea#prompt-input:focus { border-color: var(--text3); }
+textarea#prompt-input::placeholder { color: var(--text2); }
+
+.char-count {
+  font-size: 9px; color: var(--text2);
+  text-align: right; margin-top: 4px;
+}
+
+/* Model selector */
+.model-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+
+.model-btn {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 10px 12px;
+  cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.15s; position: relative;
+  overflow: hidden;
+}
+
+.model-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0; opacity: 0.4;
+  transition: opacity 0.15s;
+}
+.model-btn.sel .model-dot { opacity: 1; }
+
+.model-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 2px; opacity: 0;
+  transition: opacity 0.15s;
+}
+.model-btn.sel::before { opacity: 1; }
+.model-btn.sel { color: var(--text); background: var(--surface2); }
+
+.model-btn[data-m="claude"] .model-dot { background: var(--claude); }
+.model-btn[data-m="gpt"]    .model-dot { background: var(--gpt); }
+.model-btn[data-m="gemini"] .model-dot { background: var(--gemini); }
+.model-btn[data-m="llama"]  .model-dot { background: var(--llama); }
+.model-btn[data-m="mistral"].model-dot { background: var(--mistral); }
+.model-btn[data-m="grok"]   .model-dot { background: var(--grok); }
+
+.model-btn[data-m="claude"]::before  { background: var(--claude); }
+.model-btn[data-m="gpt"]::before    { background: var(--gpt); }
+.model-btn[data-m="gemini"]::before { background: var(--gemini); }
+.model-btn[data-m="llama"]::before  { background: var(--llama); }
+.model-btn[data-m="mistral"]::before{ background: var(--mistral); }
+.model-btn[data-m="grok"]::before   { background: var(--grok); }
+
+.model-sub {
+  font-size: 9px; color: var(--text2); margin-top: 1px; display: block;
+}
+
+/* API Key inline */
+.apikey-row {
+  display: flex; flex-direction: column; gap: 6px;
+}
+input.api-input {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  padding: 10px 12px; outline: none;
+  transition: border-color 0.2s; width: 100%;
+}
+input.api-input:focus { border-color: var(--text3); }
+.api-hint {
+  font-size: 9px; color: var(--text2); line-height: 1.6;
+}
+.api-hint a { color: var(--gemini); text-decoration: none; }
+
+/* Run button */
+.btn-run {
+  width: 100%;
+  background: var(--text); color: var(--bg);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 14px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: opacity 0.2s;
+  margin-top: auto;
+}
+.btn-run:hover { opacity: 0.88; }
+.btn-run:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ─── RIGHT PANEL ─── */
+.right {
+  padding: 28px;
+  overflow-y: auto;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100%; min-height: 400px;
+  text-align: center;
+}
+.empty-glyph {
+  font-size: 48px; margin-bottom: 20px; opacity: 0.15;
+}
+.empty-title {
+  font-size: 13px; color: var(--text3); margin-bottom: 8px;
+}
+.empty-sub {
+  font-size: 11px; color: var(--text2); line-height: 1.8; max-width: 320px;
+}
+
+/* Loading dots */
+.loading-state {
+  display: none;
+  align-items: center; justify-content: center;
+  height: 100%; min-height: 400px;
+  flex-direction: column; gap: 16px; text-align: center;
+}
+.loading-state.on { display: flex; }
+.dots {
+  display: flex; gap: 6px;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  animation: dotbounce 1.2s infinite;
+}
+.dot:nth-child(1) { background: var(--claude); animation-delay: 0s; }
+.dot:nth-child(2) { background: var(--gpt); animation-delay: 0.15s; }
+.dot:nth-child(3) { background: var(--gemini); animation-delay: 0.3s; }
+.dot:nth-child(4) { background: var(--llama); animation-delay: 0.45s; }
+@keyframes dotbounce {
+  0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+  40%          { transform: scale(1.2); opacity: 1; }
+}
+.loading-txt { font-size: 11px; color: var(--text3); letter-spacing: 0.06em; }
+
+/* Results */
+.results { display: none; flex-direction: column; gap: 20px; }
+.results.on { display: flex; }
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  animation: slideIn 0.35s ease both;
+}
+@keyframes slideIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.card-model {
+  display: flex; align-items: center; gap: 10px;
+}
+.card-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.card-name {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+}
+.card-sub {
+  font-size: 9px; color: var(--text2); margin-top: 1px;
+}
+.card-copy {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 6px 12px; cursor: pointer;
+  transition: all 0.15s;
+}
+.card-copy:hover { border-color: var(--text3); color: var(--text); }
+.card-copy.flash { border-color: var(--gpt); color: var(--gpt); }
+
+.card-prompt {
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.card-prompt pre {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; line-height: 1.75;
+  color: var(--text); white-space: pre-wrap; word-break: break-word;
+}
+
+.card-changes {
+  padding: 14px 18px;
+}
+.changes-label {
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 10px;
+}
+.change-list {
+  list-style: none; display: flex; flex-direction: column; gap: 6px;
+}
+.change-list li {
+  font-size: 11px; color: var(--text3); line-height: 1.55;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.change-list li::before {
+  content: '→'; flex-shrink: 0; margin-top: 1px;
+}
+
+/* Diff toggle */
+.diff-toggle {
+  padding: 0 18px 14px;
+  display: flex; gap: 8px;
+}
+.tab-btn {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text2); background: none;
+  border: 1px solid transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  padding: 4px 10px; cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn.on { border-color: var(--border2); color: var(--text3); }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; }
+  .left {
+    position: static; height: auto;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .right { padding: 20px 16px; }
+  .model-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media print {
+  header, .left { display: none; }
+  .main { display: block; }
+  .right { padding: 0; }
+  .result-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc; margin-bottom: 16px; }
+  body { background: #fff; color: #111; }
+  .card-prompt pre { color: #111; }
+  .card-copy { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      PromptPerfect
+    </div>
+    <span class="header-note">Optimized from official AI cookbooks & guides · <a href="/" style="color:var(--gemini);text-decoration:none;">AI Stack Advisor →</a></span>
+  </header>
+
+  <div class="main">
+    <!-- LEFT -->
+    <div class="left">
+      <div>
+        <div class="panel-label">Your Prompt</div>
+        <textarea id="prompt-input" rows="10"
+          placeholder="Write your prompt here. Rough drafts welcome — that's the point.&#10;&#10;e.g. summarize this document and give me the key points"></textarea>
+        <div class="char-count"><span id="char-n">0</span> chars</div>
+      </div>
+
+      <div>
+        <div class="panel-label">Optimize For</div>
+        <div class="model-grid">
+          <button class="model-btn sel" data-m="claude" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              Claude
+              <span class="model-sub">Anthropic</span>
+            </span>
+          </button>
+          <button class="model-btn sel" data-m="gpt" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              GPT-4o
+              <span class="model-sub">OpenAI</span>
+            </span>
+          </button>
+          <button class="model-btn sel" data-m="gemini" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              Gemini
+              <span class="model-sub">Google</span>
+            </span>
+          </button>
+          <button class="model-btn" data-m="llama" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              Llama 3
+              <span class="model-sub">Meta</span>
+            </span>
+          </button>
+          <button class="model-btn" data-m="mistral" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              Mistral
+              <span class="model-sub">Mistral AI</span>
+            </span>
+          </button>
+          <button class="model-btn" data-m="grok" onclick="toggleModel(this)">
+            <span class="model-dot"></span>
+            <span>
+              Grok
+              <span class="model-sub">xAI</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- API key handled server-side via proxy -->
+
+      <button class="btn-run" id="run-btn" onclick="run()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M5 3l8 5-8 5V3z" fill="currentColor"/>
+        </svg>
+        Optimize Prompt
+      </button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right" id="right-panel">
+      <div class="empty-state" id="empty">
+        <div class="empty-glyph">⌘</div>
+        <div class="empty-title">Paste a prompt, pick your models</div>
+        <div class="empty-sub">Each result is rewritten using that model's official prompt engineering guide — XML tags for Claude, system message structure for GPT, grounding techniques for Gemini, and so on.</div>
+      </div>
+      <div class="loading-state" id="loading">
+        <div class="dots">
+          <div class="dot"></div><div class="dot"></div>
+          <div class="dot"></div><div class="dot"></div>
+        </div>
+        <div class="loading-txt" id="load-msg">Applying prompt engineering frameworks...</div>
+      </div>
+      <div class="results" id="results"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ─── MODEL CONFIG ─── */
+const MODELS = {
+  claude:  { name:'Claude',   sub:'Anthropic',  color:'var(--claude)'  },
+  gpt:     { name:'GPT-4o',   sub:'OpenAI',     color:'var(--gpt)'    },
+  gemini:  { name:'Gemini',   sub:'Google',     color:'var(--gemini)' },
+  llama:   { name:'Llama 3',  sub:'Meta',       color:'var(--llama)'  },
+  mistral: { name:'Mistral',  sub:'Mistral AI', color:'var(--mistral)'},
+  grok:    { name:'Grok',     sub:'xAI',        color:'var(--grok)'   },
+};
+
+let selected = new Set(['claude','gpt','gemini']);
+
+/* ─── STATE ─── */
+document.getElementById('prompt-input').addEventListener('input', e => {
+  document.getElementById('char-n').textContent = e.target.value.length;
+});
+
+window.addEventListener('load', () => {
+});
+
+function toggleModel(btn) {
+  const m = btn.dataset.m;
+  if (selected.has(m)) {
+    if (selected.size === 1) return; // keep at least one
+    selected.delete(m);
+    btn.classList.remove('sel');
+  } else {
+    selected.add(m);
+    btn.classList.add('sel');
+  }
+}
+
+/* ─── THE KNOWLEDGE BASE ─── 
+   Distilled from official guides:
+   - Anthropic: docs.anthropic.com/en/docs/build-with-claude/prompt-engineering
+   - OpenAI: platform.openai.com/docs/guides/prompt-engineering
+   - Google: ai.google.dev/gemini-api/docs/prompting-strategies
+   - Meta: llama.meta.com/docs / github.com/meta-llama/llama-recipes
+   - Mistral: docs.mistral.ai/guides/prompting-capabilities
+   - xAI: docs.x.ai/docs/prompting
+─────────────────────────────────────────── */
+const KNOWLEDGE = {
+claude: `CLAUDE PROMPT ENGINEERING (from Anthropic official guide):
+1. STRUCTURE WITH XML TAGS: Wrap distinct sections in semantic XML tags. Use <instructions>, <context>, <examples>, <input>, <output_format>, <thinking>. Claude is specifically trained to parse these.
+2. BE DIRECT AND EXPLICIT: State exactly what you want. Claude doesn't need softening language. "Write X" not "Could you maybe write X?"
+3. ASSIGN A ROLE UPFRONT: Start with "You are a [role]." This sets tone and expertise for the entire response.
+4. SPECIFY OUTPUT FORMAT PRECISELY: Tell Claude exactly how to format the response — length, structure, markdown usage, tone. Claude will match it precisely.
+5. FEW-SHOT EXAMPLES: For non-trivial formats, show 2-3 examples inside <examples> tags. Claude pattern-matches strongly.
+6. CHAIN OF THOUGHT: Add "Think through this step by step before responding" or wrap reasoning in <thinking> tags. Claude performs better on complex tasks with scratchpad space.
+7. PREFILL THE ASSISTANT TURN: End with the first token of Claude's response to constrain format (e.g., end with "```json" to force JSON output).
+8. POSITIVE FRAMING: Say what TO do, not what NOT to do. "Respond only with code" works better than "Don't add explanations."
+9. DOCUMENT PLACEMENT: For prompts with long documents, place the document BEFORE the instructions, not after.
+10. CALIBRATE LENGTH: Explicitly state desired response length. "In 2-3 sentences" or "Comprehensive, with subsections."`,
+
+gpt: `GPT-4o PROMPT ENGINEERING (from OpenAI official guide & cookbook):
+1. SYSTEM MESSAGE IS PRIMARY: All persona, format, and behavioral instructions go in the system message. Keep user messages focused on the task.
+2. USE DELIMITERS: Structure inputs with clear delimiters — triple backticks \`\`\`, XML tags, or dashes --- to separate content from instructions.
+3. EXPLICIT OUTPUT FORMAT: Specify format in detail. For JSON: "Return ONLY valid JSON with this schema: {...}". For markdown: list exact headers you want.
+4. PROVIDE REFERENCE TEXT: Ground responses by including source material. "Using only the following information: [text], answer: [question]"
+5. CHAIN OF THOUGHT: For reasoning tasks, include "Let's think step by step" or "Work through this methodically before giving the final answer."
+6. DECOMPOSE COMPLEX TASKS: Break multi-step tasks into a sequence of simpler prompts rather than one giant prompt.
+7. SPECIFY PERSONA CLEARLY: "You are an expert [role] with deep knowledge of [domain]. You always [behavioral trait]."
+8. TEMPERATURE GUIDANCE: Embed in prompt: "Be precise and deterministic" (implies low temp) or "Be creative and varied" (implies high temp).
+9. FEW-SHOT FORMAT: Provide examples as actual message pairs (user/assistant) for strongest effect.
+10. FOR o1/o3 MODELS: Skip heavy system prompting — reasoning models work better with minimal instructions in the user turn. No chain-of-thought nudges needed.`,
+
+gemini: `GEMINI PROMPT ENGINEERING (from Google AI official guide):
+1. SYSTEM INSTRUCTIONS ARE PERSISTENT: Use system instructions for persona, format rules, and behavioral guidelines. They persist across the full conversation.
+2. BE SPECIFIC ABOUT PERSONA: "You are a [specific role]. Your communication style is [trait]. You always [behavior]. You never [constraint]."
+3. STRUCTURED OUTPUT WITH SCHEMA: For JSON output, specify the exact schema in the prompt. Gemini follows explicit schemas reliably.
+4. NUMBERED STEP-BY-STEP INSTRUCTIONS: For complex tasks, number your instructions. "1. First do X. 2. Then do Y. 3. Finally do Z."
+5. FEW-SHOT WITH DIVERSE EXAMPLES: Provide realistic, varied examples that cover edge cases. More diverse examples = more robust behavior.
+6. SPECIFY BOTH DOS AND DON'TS: Unlike Claude, Gemini responds well to explicit negative constraints alongside positive ones.
+7. GROUNDING FOR FACTUAL TASKS: Include "Ground your response in the provided context. Do not use outside knowledge." when accuracy matters.
+8. MULTIMODAL AWARENESS: When working with images/video/audio, explicitly describe what the model should attend to in the media.
+9. CHAIN OF THOUGHT: "Think through this carefully before responding" or "Show your reasoning." Works especially well for math and logic.
+10. TEMPERATURE FRAMING: Include "Be precise and factual" for low-temp tasks, "Be creative and expansive" for generation tasks.`,
+
+llama: `LLAMA 3 PROMPT ENGINEERING (from Meta official Llama docs & recipes):
+1. DETAILED SYSTEM PROMPT: Llama 3 benefits from longer, more detailed system prompts than other models. Be exhaustive about role, constraints, and format.
+2. EXPLICIT BEHAVIORAL CONSTRAINTS: List what the model should and should not do in clear numbered form. Llama follows explicit rule sets reliably.
+3. LLAMA 3 MESSAGE FORMAT: Structure as: System: [detailed instructions] / User: [task] / Assistant: [optional prefill]. Use special tokens in API: <|begin_of_text|>, <|start_header_id|>system<|end_header_id|>.
+4. FEW-SHOT IS HIGHLY EFFECTIVE: Llama 3 is strongly few-shot. Provide 3-5 clear input→output examples for complex formats.
+5. CHAIN OF THOUGHT: "Think step by step" significantly improves performance on reasoning tasks. Include explicit CoT instruction.
+6. REPEAT KEY CONSTRAINTS: For critical constraints (format, length, content limits), repeat them both in system prompt and at end of user message.
+7. EXPLICIT TOOL USE: For function calling, clearly describe available tools with their schemas, parameters, and when to use each.
+8. ROLE DEFINITION: Open with a strong, specific role definition. "You are [role]. Your primary function is [function]. You have expertise in [domains]."
+9. CALIBRATE OUTPUT LENGTH: Llama 3 can be verbose. Explicitly state "Respond in [N] sentences/words/paragraphs."
+10. PUNCTUATION IN OUTPUT: Specify punctuation and formatting explicitly if you need consistent structured output.`,
+
+mistral: `MISTRAL PROMPT ENGINEERING (from Mistral AI official docs):
+1. SYSTEM + USER STRUCTURE: Always use system message for instructions and persona. User turn for the actual task. Keep them cleanly separated.
+2. CLEAR DELIMITERS: Use [INST] [/INST] markers for older models. For API use, structure with role-based messages.
+3. EXPLICIT JSON SCHEMA: For structured output, specify the exact JSON schema inline. "Return JSON matching: { field: type, ... }"
+4. CONCISE SYSTEM PROMPTS: Mistral responds well to concise, well-organized system prompts. Avoid repetition — say it once, clearly.
+5. FEW-SHOT FOR FORMAT: Include examples as message pairs for reliable format adherence, especially for extraction tasks.
+6. FUNCTION CALLING FORMAT: When using tools, provide clear tool descriptions with parameter names, types, and descriptions.
+7. CHAIN OF THOUGHT FOR REASONING: "Reason step by step" or "Think carefully before responding" improves accuracy on multi-step problems.
+8. ROLE SETTING: Strong persona prompts work well. "You are a [role] specialized in [domain]. Respond only with [format]."
+9. LANGUAGE MATCHING: Mistral is multilingual — specify the language explicitly if needed: "Always respond in English regardless of input language."
+10. SAFETY AWARE: Mistral has guardrails — frame sensitive-but-legitimate tasks with clear professional context.`,
+
+grok: `GROK PROMPT ENGINEERING (from xAI official docs & prompting guide):
+1. DIRECT AND CASUAL WORKS: Grok is designed for more direct, conversational interaction than most models. Overly formal prompts can be counterproductive.
+2. REAL-TIME CONTEXT: Grok has X/Twitter data access. Frame prompts to leverage this: "Based on current trends and recent discussions..."
+3. SYSTEM PROMPT FOR PERSONA: Use system prompt to set role and behavior. Grok responds well to clear persona definitions.
+4. CHAIN OF THOUGHT: Grok benefits from explicit reasoning requests: "Think through this step by step" for complex analytical tasks.
+5. FEW-SHOT EXAMPLES: Provide examples for format-sensitive tasks. Grok follows demonstrated patterns reliably.
+6. EXPLICIT OUTPUT FORMAT: Specify format requirements clearly — Grok will match if told explicitly. "Return as a JSON array" or "Use markdown with headers."
+7. HUMOR AND PERSONALITY: Grok is trained to be more expressive. If tone matters, specify: "Be professional and precise" or let it be natural.
+8. FACTUAL GROUNDING: For factual queries, include "Cite sources when possible" or "Based only on verified information."
+9. LONG CONTEXT: Grok handles long contexts well. Don't truncate — include full documents when relevant.
+10. ITERATIVE REFINEMENT: Grok responds well to follow-up clarification. Build complex prompts iteratively rather than trying to be perfect first time.`
+};
+
+/* ─── RUN ─── */
+async function run() {
+  const prompt = document.getElementById('prompt-input').value.trim();
+  if (!prompt) { alert('Paste a prompt first.'); return; }
+  if (!selected.size) { alert('Select at least one model.'); return; }
+
+  // UI state
+  document.getElementById('empty').style.display = 'none';
+  document.getElementById('results').classList.remove('on');
+  const loading = document.getElementById('loading');
+  loading.classList.add('on');
+  document.getElementById('run-btn').disabled = true;
+
+  const loadMsgs = [
+    'Reading Anthropic\'s prompt engineering guide...',
+    'Applying OpenAI cookbook principles...',
+    'Cross-referencing Google\'s Gemini strategies...',
+    'Incorporating Meta\'s Llama documentation...',
+    'Rewriting for each model\'s strengths...',
+  ];
+  let lmi = 0;
+  const lel = document.getElementById('load-msg');
+  const liv = setInterval(() => { lel.textContent = loadMsgs[++lmi % loadMsgs.length]; }, 1800);
+
+  const modelList = [...selected];
+  const knowledgeBlock = modelList.map(m => KNOWLEDGE[m]).join('\n\n---\n\n');
+
+  const sysPrompt = `You are a prompt engineering expert who has deeply studied every major AI company's official prompt engineering guides, cookbooks, and documentation. You rewrite prompts to be optimally effective for specific AI models using each model's documented best practices.
+
+Here is your knowledge base — official guidelines for each model:
+
+${knowledgeBlock}
+
+When given a prompt and a list of models to optimize for, you return a JSON object with rewritten versions. Each rewrite should genuinely apply that model's specific techniques — not just rephrase the same way for every model. The differences should be real and meaningful.`;
+
+  const userMsg = `Original prompt to optimize:
+<prompt>
+${prompt}
+</prompt>
+
+Models to optimize for: ${modelList.join(', ')}
+
+For each model, rewrite the prompt applying its documented best practices. Make the optimizations substantive — actually use XML tags for Claude, put instructions in system message format for GPT, add numbered steps for Gemini, etc.
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "results": [
+    {
+      "model": "model_id",
+      "optimized": "the fully rewritten prompt, ready to use",
+      "changes": ["specific change made and why", "another specific change", "..."]
+    }
+  ]
+}
+
+changes array: 3-5 items, each describing a concrete technique applied and the reasoning. Be specific, not generic ("Added XML tags to separate context from instructions, as Claude is trained to parse these" not "Improved structure").`;
+
+  try {
+    const res = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        system: sysPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+    clearInterval(liv);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.content[0].text.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(raw);
+    renderResults(parsed.results, prompt);
+  } catch(err) {
+    clearInterval(liv);
+    alert('Error: ' + err.message);
+  } finally {
+    loading.classList.remove('on');
+    document.getElementById('run-btn').disabled = false;
+  }
+}
+
+/* ─── RENDER ─── */
+function renderResults(results, original) {
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+
+  results.forEach((r, i) => {
+    const cfg = MODELS[r.model] || { name: r.model, sub: '', color: 'var(--text3)' };
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.animationDelay = (i * 0.08) + 's';
+
+    const copyId = 'copy-' + r.model;
+    const textId = 'text-' + r.model;
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-model">
+          <div class="card-dot" style="background:${cfg.color}"></div>
+          <div>
+            <div class="card-name">${esc(cfg.name)}</div>
+            <div class="card-sub">${esc(cfg.sub)}</div>
+          </div>
+        </div>
+        <button class="card-copy" id="${copyId}" onclick="copyText('${r.model}')">Copy</button>
+      </div>
+      <div class="card-prompt">
+        <pre id="${textId}">${esc(r.optimized)}</pre>
+      </div>
+      <div class="card-changes">
+        <div class="changes-label">What changed & why</div>
+        <ul class="change-list">
+          ${(r.changes||[]).map(c=>`<li>${esc(c)}</li>`).join('')}
+        </ul>
+      </div>`;
+    container.appendChild(card);
+  });
+
+  container.classList.add('on');
+}
+
+function copyText(modelId) {
+  const el = document.getElementById('text-' + modelId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = document.getElementById('copy-' + modelId);
+    btn.classList.add('flash');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('flash'); btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── KEYBOARD SHORTCUT ─── */
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') run();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StackAdvisor — Find Your AI Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070707;
+  --surface: #0f0f0f;
+  --surface2: #161616;
+  --border: #1e1e1e;
+  --border2: #2a2a2a;
+  --text: #ede9e3;
+  --text2: #5e5b57;
+  --text3: #908c86;
+  --gold: #c9a84c;
+  --gold-dim: #7a6530;
+  --orange: #e8834a;
+  --blue: #4a9be8;
+  --purple: #9b9bc9;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ─── LANDING ─── */
+#screen-landing {
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  position: relative;
+}
+
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: 0.5;
+  mask-image: radial-gradient(ellipse at center, black 10%, transparent 75%);
+  pointer-events: none;
+}
+
+.landing-inner {
+  position: relative;
+  text-align: center;
+  max-width: 600px;
+  animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid var(--gold-dim);
+  padding: 6px 14px; margin-bottom: 36px;
+}
+.pill-dot {
+  width: 5px; height: 5px; background: var(--gold);
+  border-radius: 50%; animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+.hero-title {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(52px, 10vw, 96px);
+  font-weight: 900; line-height: 0.93;
+  letter-spacing: -0.025em;
+  margin-bottom: 28px;
+}
+.hero-title em {
+  font-style: italic; font-weight: 300;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 13px; line-height: 1.8;
+  color: var(--text3);
+  max-width: 400px;
+  margin: 0 auto 48px;
+}
+
+.btn-cta {
+  display: inline-flex; align-items: center; gap: 12px;
+  background: var(--gold); color: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 16px 32px;
+  border: none; cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.btn-cta:hover { background: #dfc060; transform: translateY(-1px); }
+.btn-cta svg { transition: transform 0.2s; }
+.btn-cta:hover svg { transform: translateX(4px); }
+
+.hero-note {
+  margin-top: 18px;
+  font-size: 10px; color: var(--text2); letter-spacing: 0.06em;
+}
+
+/* ─── API KEY ─── */
+#screen-apikey {
+  align-items: center; justify-content: center;
+  padding: 60px 24px;
+}
+.form-box {
+  max-width: 460px; width: 100%;
+  animation: fadeUp 0.4s ease both;
+}
+.back-btn {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text2); background: none; border: none;
+  cursor: pointer; margin-bottom: 44px;
+  transition: color 0.2s;
+}
+.back-btn:hover { color: var(--text); }
+
+.box-title {
+  font-family: 'Fraunces', serif;
+  font-size: 34px; font-weight: 700;
+  margin-bottom: 12px;
+}
+.box-sub {
+  font-size: 12px; line-height: 1.85;
+  color: var(--text3); margin-bottom: 32px;
+}
+.field-label {
+  display: block;
+  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 8px;
+}
+.field-input {
+  width: 100%;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  padding: 14px 16px; outline: none;
+  transition: border-color 0.2s;
+}
+.field-input:focus { border-color: var(--gold); }
+textarea.field-input { resize: none; line-height: 1.7; }
+.field-hint {
+  font-size: 10px; color: var(--text2);
+  margin: 8px 0 28px; line-height: 1.7;
+}
+.field-hint a { color: var(--gold); text-decoration: none; }
+
+/* ─── INTAKE ─── */
+#screen-intake { padding: 48px 24px 60px; }
+
+.intake-top {
+  max-width: 620px; margin: 0 auto 40px;
+}
+.progress-track {
+  display: flex; gap: 4px; margin-bottom: 20px;
+}
+.prog-seg {
+  height: 2px; flex: 1;
+  background: var(--border2);
+  transition: background 0.35s;
+}
+.prog-seg.on { background: var(--gold); }
+
+.step-label {
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 14px;
+}
+.intake-q {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700; line-height: 1.2;
+  margin-bottom: 8px;
+}
+.intake-hint-txt {
+  font-size: 12px; color: var(--text3);
+}
+
+.intake-body { max-width: 620px; margin: 0 auto; }
+
+.step-pane { display: none; }
+.step-pane.on { display: block; }
+
+.opt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 8px; margin-bottom: 4px;
+}
+
+.opt {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; text-align: left;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.opt::before {
+  content: ''; width: 13px; height: 13px; flex-shrink: 0;
+  border: 1px solid var(--border2);
+  transition: background 0.15s, border-color 0.15s;
+}
+.opt.radio::before { border-radius: 50%; }
+
+.opt:hover { border-color: var(--gold-dim); color: var(--text); }
+.opt.sel {
+  border-color: var(--gold); color: var(--text);
+  background: rgba(201,168,76,.06);
+}
+.opt.sel::before {
+  background: var(--gold); border-color: var(--gold);
+}
+.opt.radio.sel::before {
+  box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+}
+
+.intake-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 620px; margin: 36px auto 0;
+}
+.btn-ghost {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 12px 24px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-ghost:hover { border-color: var(--text3); color: var(--text); }
+.btn-next {
+  background: var(--gold); border: none; color: #000;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 13px 28px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: background 0.2s;
+}
+.btn-next:hover { background: #dfc060; }
+
+/* ─── LOADING ─── */
+#screen-loading {
+  align-items: center; justify-content: center;
+  text-align: center;
+}
+.load-inner { max-width: 320px; padding: 40px 24px; }
+.load-glyph {
+  font-size: 56px; color: var(--gold);
+  display: block; margin-bottom: 28px;
+  animation: spin 5s linear infinite;
+}
+@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+.load-title {
+  font-family: 'Fraunces', serif;
+  font-size: 24px; font-weight: 700; margin-bottom: 12px;
+}
+.load-status {
+  font-size: 11px; color: var(--text2); letter-spacing: 0.08em;
+}
+
+/* ─── REPORT ─── */
+#screen-report { padding: 0; }
+
+.rpt-header {
+  padding: 40px 40px 32px;
+  border-bottom: 1px solid var(--border);
+  max-width: 920px; margin: 0 auto;
+  animation: fadeUp 0.5s ease both;
+}
+.rpt-meta {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap; gap: 14px;
+}
+.rpt-brand {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold);
+}
+.rpt-actions { display: flex; gap: 8px; }
+.btn-sm {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 8px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-sm:hover { border-color: var(--gold); color: var(--gold); }
+.btn-sm.flash {
+  border-color: var(--gold); color: var(--gold);
+}
+
+.rpt-headline {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900; line-height: 1.02;
+  margin-bottom: 16px;
+}
+.rpt-summary {
+  font-size: 13px; line-height: 1.85;
+  color: var(--text3); max-width: 560px;
+}
+
+.rpt-body {
+  max-width: 920px; margin: 0 auto;
+  padding: 40px;
+  animation: fadeUp 0.5s 0.15s ease both;
+}
+.section-label {
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 24px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: 14px; margin-bottom: 48px;
+}
+
+.t-card {
+  background: var(--surface); border: 1px solid var(--border2);
+  padding: 22px;
+  position: relative; overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.t-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+}
+.t-card.essential::before  { background: var(--orange); }
+.t-card.recommended::before { background: var(--blue); }
+.t-card.optional::before   { background: var(--purple); }
+.t-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 36px rgba(0,0,0,.5);
+}
+
+.t-top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+  margin-bottom: 6px;
+}
+.t-name {
+  font-family: 'Fraunces', serif;
+  font-size: 21px; font-weight: 700;
+}
+.t-badge {
+  font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 8px; flex-shrink: 0; margin-top: 2px;
+}
+.t-badge.essential  { background: rgba(232,131,74,.12); color: var(--orange); border: 1px solid rgba(232,131,74,.3); }
+.t-badge.recommended { background: rgba(74,155,232,.12); color: var(--blue);   border: 1px solid rgba(74,155,232,.3); }
+.t-badge.optional   { background: rgba(155,155,201,.12); color: var(--purple); border: 1px solid rgba(155,155,201,.3); }
+
+.t-cat {
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 10px;
+}
+.t-tagline {
+  font-size: 12px; color: var(--text3);
+  line-height: 1.55; margin-bottom: 14px;
+}
+.t-reason {
+  font-size: 12px; color: var(--text);
+  line-height: 1.75;
+  padding-top: 14px; margin-bottom: 14px;
+  border-top: 1px solid var(--border);
+}
+.t-roi {
+  font-size: 10px; color: var(--gold);
+  display: flex; align-items: flex-start; gap: 7px;
+  margin-bottom: 10px; line-height: 1.5;
+}
+.t-roi-arrow { color: var(--gold-dim); flex-shrink: 0; }
+.t-pricing {
+  font-size: 10px; color: var(--text3);
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 16px;
+}
+.t-pricing-dot { color: var(--gold-dim); }
+.t-link {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text2); text-decoration: none;
+  padding-top: 14px; border-top: 1px solid var(--border);
+  transition: color 0.2s;
+}
+.t-link:hover { color: var(--gold); }
+
+.rpt-footer {
+  max-width: 920px; margin: 0 auto;
+  padding: 28px 40px 56px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.footer-note {
+  font-size: 10px; color: var(--text2);
+  line-height: 1.7; max-width: 420px;
+}
+.btn-restart {
+  background: none; border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 10px 20px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s; white-space: nowrap;
+}
+.btn-restart:hover { border-color: var(--text3); color: var(--text); }
+
+/* ─── PRINT / PDF ─── */
+@media print {
+  body { background: #fff; color: #111; }
+  .screen { display: none !important; }
+  #screen-report { display: block !important; min-height: unset; }
+  .rpt-actions, .rpt-footer, .btn-restart { display: none !important; }
+  .rpt-header { padding: 24px 0 20px; border-bottom: 2px solid #111; max-width: 100%; }
+  .rpt-brand { color: #888; }
+  .rpt-headline { color: #111; font-size: 36px; }
+  .rpt-summary { color: #444; }
+  .rpt-body { padding: 24px 0; max-width: 100%; }
+  .section-label { color: #888; border-color: #ddd; }
+  .tools-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .t-card { background: #fff; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+  .t-card::before { display: none; }
+  .t-name { color: #111; }
+  .t-cat { color: #888; }
+  .t-tagline { color: #555; }
+  .t-reason { color: #222; border-color: #eee; }
+  .t-roi { color: #b8870a; }
+  .t-roi-arrow { color: #cca020; }
+  .t-pricing { color: #666; }
+  .t-link { color: #1a6bb5; border-color: #eee; }
+  .t-badge.essential  { background: #fff3ec; color: #c0540a; border-color: #f0a070; }
+  .t-badge.recommended { background: #edf5ff; color: #1a6bb5; border-color: #7ab4e8; }
+  .t-badge.optional   { background: #f4f4ff; color: #5555aa; border-color: #aaaadd; }
+  .rpt-meta { margin-bottom: 16px; }
+}
+
+@media (max-width: 640px) {
+  .rpt-header, .rpt-body { padding: 24px 20px; }
+  .rpt-footer { padding: 24px 20px 48px; }
+  .tools-grid { grid-template-columns: 1fr; }
+  .opt-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── LANDING ─── -->
+<div id="screen-landing" class="screen active">
+  <div class="bg-grid"></div>
+  <div class="landing-inner">
+    <div class="pill"><span class="pill-dot"></span>AI Stack Advisor</div>
+    <h1 class="hero-title">Find your<br><em>exact</em><br>AI stack.</h1>
+    <p class="hero-sub">5 questions. A personalized report of the AI tools that will actually move the needle for your company — not a generic list.</p>
+    <button class="btn-cta" onclick="goTo('intake'); renderStep(1);">
+      Build my stack
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <p class="hero-note">Powered by Claude AI · Free to use · <a href="/promptperfect.html" style="color:var(--gold);text-decoration:none;">Try PromptPerfect →</a></p>
+  </div>
+</div>
+
+
+<!-- ─── INTAKE ─── -->
+<div id="screen-intake" class="screen">
+  <div class="intake-top">
+    <div class="progress-track">
+      <div class="prog-seg" id="p0"></div>
+      <div class="prog-seg" id="p1"></div>
+      <div class="prog-seg" id="p2"></div>
+      <div class="prog-seg" id="p3"></div>
+      <div class="prog-seg" id="p4"></div>
+    </div>
+    <div class="step-label" id="step-lbl">Step 1 of 5</div>
+    <h2 class="intake-q" id="intake-q">Describe your company</h2>
+    <p class="intake-hint-txt" id="intake-hint">What do you do? Who are your customers? More specifics = better recommendations.</p>
+  </div>
+
+  <div class="intake-body">
+    <!-- Step 1 -->
+    <div class="step-pane on" id="sp1">
+      <div id="url-row" style="display:flex;gap:8px;margin-bottom:12px;">
+        <input type="text" class="field-input" id="co-url" placeholder="yourcompany.com  (optional — we'll research it)"
+          style="flex:1;padding:12px 14px;font-size:12px;">
+        <button class="btn-next" id="url-btn" onclick="analyzeUrl()" style="white-space:nowrap;padding:12px 18px;font-size:10px;">
+          Analyze
+        </button>
+      </div>
+      <div id="url-status" style="font-size:11px;color:var(--text2);margin-bottom:10px;min-height:16px;"></div>
+      <textarea class="field-input" id="co-desc" rows="6"
+        placeholder="Or describe manually — what do you do? Who are your customers? The more specific, the better..."></textarea>
+    </div>
+    <!-- Step 2 -->
+    <div class="step-pane" id="sp2">
+      <div class="opt-grid">
+        <button class="opt radio" data-g="size" data-v="1–10" onclick="pick(this)">1–10 people</button>
+        <button class="opt radio" data-g="size" data-v="11–50" onclick="pick(this)">11–50 people</button>
+        <button class="opt radio" data-g="size" data-v="51–200" onclick="pick(this)">51–200 people</button>
+        <button class="opt radio" data-g="size" data-v="200+" onclick="pick(this)">200+ people</button>
+      </div>
+    </div>
+    <!-- Step 3 -->
+    <div class="step-pane" id="sp3">
+      <div class="opt-grid">
+        <button class="opt" data-v="writing" onclick="toggle(this)">Writing & content</button>
+        <button class="opt" data-v="coding" onclick="toggle(this)">Coding & dev</button>
+        <button class="opt" data-v="design" onclick="toggle(this)">Design & visuals</button>
+        <button class="opt" data-v="research" onclick="toggle(this)">Research & analysis</button>
+        <button class="opt" data-v="meetings" onclick="toggle(this)">Meetings & notes</button>
+        <button class="opt" data-v="sales" onclick="toggle(this)">Sales & marketing</button>
+        <button class="opt" data-v="support" onclick="toggle(this)">Customer support</button>
+        <button class="opt" data-v="ops" onclick="toggle(this)">Ops & automation</button>
+      </div>
+    </div>
+    <!-- Step 4 -->
+    <div class="step-pane" id="sp4">
+      <div class="opt-grid">
+        <button class="opt radio" data-g="budget" data-v="free only" onclick="pick(this)">Free only</button>
+        <button class="opt radio" data-g="budget" data-v="under $100/mo" onclick="pick(this)">Under $100/mo</button>
+        <button class="opt radio" data-g="budget" data-v="$100–$500/mo" onclick="pick(this)">$100–$500/mo</button>
+        <button class="opt radio" data-g="budget" data-v="$500+/mo" onclick="pick(this)">$500+/mo</button>
+      </div>
+    </div>
+    <!-- Step 5 -->
+    <div class="step-pane" id="sp5">
+      <div class="opt-grid">
+        <button class="opt radio" data-g="tech" data-v="non-technical" onclick="pick(this)">Non-technical team</button>
+        <button class="opt radio" data-g="tech" data-v="mixed (some devs, mostly not)" onclick="pick(this)">Mixed — some devs</button>
+        <button class="opt radio" data-g="tech" data-v="technical / engineering-led" onclick="pick(this)">Technical / eng-led</button>
+      </div>
+    </div>
+
+    <div class="intake-nav">
+      <button class="btn-ghost" id="btn-back" onclick="prevStep()" style="visibility:hidden">← Back</button>
+      <button class="btn-next" id="btn-nxt" onclick="nextStep()">
+        Next
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── LOADING ─── -->
+<div id="screen-loading" class="screen">
+  <div class="load-inner">
+    <span class="load-glyph">✦</span>
+    <h2 class="load-title">Analyzing your company</h2>
+    <p class="load-status" id="load-txt">Scanning tool landscape...</p>
+  </div>
+</div>
+
+<!-- ─── REPORT ─── -->
+<div id="screen-report" class="screen">
+  <div class="rpt-header">
+    <div class="rpt-meta">
+      <span class="rpt-brand">StackAdvisor / Report</span>
+      <div class="rpt-actions">
+        <button class="btn-sm" id="share-btn" onclick="copyLink()">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <path d="M6 3H3v10h10v-3M10 2h4v4M14 2L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Share
+        </button>
+        <button class="btn-sm" onclick="saveLocal()">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <path d="M3 11v2h10v-2M8 3v8M5 8l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Save
+        </button>
+        <button class="btn-sm" onclick="printReport()">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <path d="M4 5V2h8v3M4 11H2V7h12v4h-2M4 11v3h8v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          PDF
+        </button>
+      </div>
+    </div>
+    <h1 class="rpt-headline" id="rpt-headline">Your AI Stack</h1>
+    <p class="rpt-summary" id="rpt-summary"></p>
+  </div>
+
+  <div class="rpt-body">
+    <div class="section-label">Recommended Tools</div>
+    <div class="tools-grid" id="tools-grid"></div>
+  </div>
+
+  <div class="rpt-footer">
+    <p class="footer-note">Recommendations generated by Claude AI based on your company profile. Links may carry affiliate parameters. Tool pricing and features change — verify before committing.</p>
+    <button class="btn-restart" onclick="restart()">← Start over</button>
+  </div>
+</div>
+
+<script>
+/* ─── STATE ─── */
+let step = 1;
+const S = { desc:'', size:'', pains:[], budget:'', tech:'' };
+
+const STEPS = [
+  { q:'Describe your company', hint:'What do you do? Who are your customers? More specifics = better recommendations.' },
+  { q:'How big is your team?', hint:'Helps us match tools that scale correctly for you.' },
+  { q:'Where are the biggest time sinks?', hint:'Select all that apply.' },
+  { q:'What\'s your AI budget?', hint:'Per month, across the whole company.' },
+  { q:'How technical is your team?', hint:'Affects which tools we recommend.' },
+];
+
+/* ─── NAVIGATION ─── */
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+
+
+function restart() {
+  step = 1;
+  Object.assign(S, { desc:'', size:'', pains:[], budget:'', tech:'' });
+  document.getElementById('co-desc').value = '';
+  document.querySelectorAll('.opt').forEach(b => b.classList.remove('sel'));
+  goTo('landing');
+}
+
+/* ─── STEP LOGIC ─── */
+function renderStep(n) {
+  step = n;
+  for (let i=0;i<5;i++) document.getElementById('p'+i).classList.toggle('on', i < n);
+  document.getElementById('step-lbl').textContent = `Step ${n} of 5`;
+  document.getElementById('intake-q').textContent = STEPS[n-1].q;
+  document.getElementById('intake-hint').textContent = STEPS[n-1].hint;
+  document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('on'));
+  document.getElementById('sp'+n).classList.add('on');
+  document.getElementById('btn-back').style.visibility = n > 1 ? 'visible' : 'hidden';
+  const nb = document.getElementById('btn-nxt');
+  nb.innerHTML = n === 5
+    ? 'Generate report <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : 'Next <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+function prevStep() { if (step > 1) renderStep(step - 1); else goTo('landing'); }
+
+function nextStep() {
+  if (step === 1) {
+    const d = document.getElementById('co-desc').value.trim();
+    if (!d) { alert('Please describe your company.'); return; }
+    S.desc = d;
+  } else if (step === 2) {
+    if (!S.size) { alert('Please select team size.'); return; }
+  } else if (step === 3) {
+    if (!S.pains.length) { alert('Please select at least one area.'); return; }
+  } else if (step === 4) {
+    if (!S.budget) { alert('Please select a budget.'); return; }
+  } else if (step === 5) {
+    if (!S.tech) { alert('Please select tech level.'); return; }
+    generate(); return;
+  }
+  renderStep(step + 1);
+}
+
+function pick(btn) {
+  const g = btn.dataset.g;
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  if (g === 'size')   S.size   = btn.dataset.v;
+  if (g === 'budget') S.budget = btn.dataset.v;
+  if (g === 'tech')   S.tech   = btn.dataset.v;
+}
+
+function toggle(btn) {
+  btn.classList.toggle('sel');
+  const v = btn.dataset.v;
+  S.pains = btn.classList.contains('sel')
+    ? [...S.pains, v]
+    : S.pains.filter(x => x !== v);
+}
+
+/* ─── PRINT ─── */
+function printReport() {
+  const headline = document.getElementById('rpt-headline').textContent || 'AI Stack';
+  const date = new Date().toISOString().slice(0,10);
+  const prev = document.title;
+  document.title = `StackAdvisor — ${headline} — ${date}`;
+  window.print();
+  setTimeout(() => { document.title = prev; }, 1000);
+}
+
+/* ─── AFFILIATE LINKS ─── 
+   To add affiliate links, populate this map with tool name (lowercase) → affiliate URL.
+   The render function will use your affiliate URL instead of the one Claude returns.
+   Example:
+     'notion': 'https://notion.so/?ref=yourid',
+     'cursor': 'https://cursor.com/?via=yourid',
+   Leave empty until you have real affiliate IDs.
+─────────────────────────── */
+const AFFILIATE = {
+  // 'notion': 'https://notion.so/?ref=YOURID',
+  // 'cursor': 'https://cursor.com/?via=YOURID',
+};
+
+function affiliateUrl(toolName, fallback) {
+  const key = (toolName || '').toLowerCase().trim();
+  return AFFILIATE[key] || fallback;
+}
+
+/* ─── URL ANALYSIS ─── */
+async function analyzeUrl() {
+  let url = document.getElementById('co-url').value.trim();
+  if (!url) { alert('Enter a website URL.'); return; }
+  if (!url.startsWith('http')) url = 'https://' + url;
+  document.getElementById('co-url').value = url;
+
+  const btn = document.getElementById('url-btn');
+  const status = document.getElementById('url-status');
+  btn.textContent = '...'; btn.disabled = true;
+  status.textContent = 'Researching your website...';
+
+  try {
+    const res = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{
+          role: 'user',
+          content: `Research this company website: ${url}
+
+Write a 3-4 sentence factual description of what this company does, who their customers are, what their product is, and roughly how big they seem. Be specific and concrete — mention their actual product name, market, and customer type. Do not use vague language like "innovative" or "cutting-edge". Just plain facts about the business.
+
+Respond with ONLY the description paragraph, nothing else.`
+        }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    if (text) {
+      document.getElementById('co-desc').value = text;
+      status.style.color = 'var(--gold)';
+      status.textContent = '✓ Description filled in — edit if needed.';
+    } else {
+      status.textContent = 'Could not extract description. Fill in manually.';
+    }
+  } catch(err) {
+    status.textContent = 'Error: ' + err.message;
+  } finally {
+    btn.textContent = 'Analyze'; btn.disabled = false;
+  }
+}
+
+/* ─── GENERATE ─── */
+async function generate() {
+  goTo('loading');
+  const msgs = [
+    'Mapping your workflow gaps...',
+    'Scanning 250+ AI tools...',
+    'Matching to your context...',
+    'Sizing ROI estimates...',
+    'Finalizing recommendations...',
+  ];
+  let mi = 0;
+  const el = document.getElementById('load-txt');
+  const iv = setInterval(() => { el.textContent = msgs[++mi % msgs.length]; }, 1700);
+
+  const prompt = `You are an expert AI strategy advisor. A company has submitted this profile:
+
+Company: ${S.desc}
+Team size: ${S.size}
+Pain points: ${S.pains.join(', ')}
+Monthly AI budget: ${S.budget}
+Tech level: ${S.tech}
+
+Recommend the best AI tools specifically for this company. Be concrete and reference their actual context in every recommendation.
+
+Return ONLY valid JSON, no markdown fences, no text outside the JSON object:
+
+{
+  "headline": "4-6 word evocative title for their stack (e.g. 'The Lean GTM Operator Stack')",
+  "summary": "2-3 sentences: what you see in their situation and the core strategy recommendation. Specific to them, not generic.",
+  "stack": [
+    {
+      "category": "Writing | Coding | Design | Research | Meetings | Sales | Support | Automation | Productivity",
+      "tool": "exact product name",
+      "tagline": "one crisp sentence what it does",
+      "reason": "2 sentences: why THIS specific company needs this tool. Reference their context.",
+      "priority": "essential | recommended | optional",
+      "roi": "specific quantified impact e.g. 'Cuts proposal writing from 3 hrs to 30 min'",
+      "pricing": "e.g. 'Free · $20/mo Pro' or '$49/mo' or 'Free tier · Teams from $8/user/mo'",
+      "url": "accurate homepage URL"
+    }
+  ]
+}
+
+Constraints:
+- 7–10 tools total
+- Strictly max 3 "essential", 3–4 "recommended", 1–2 "optional"
+- Respect budget — if free only, only free tiers
+- roi must be concrete, not vague
+- Use real tools with accurate URLs`;
+
+  try {
+    const res = await fetch('/api/proxy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    clearInterval(iv);
+    const data = await res.json();
+    if (data.error) { alert('API error: ' + data.error.message); goTo('intake'); return; }
+    const raw = data.content[0].text.replace(/```json|```/g,'').trim();
+    const report = JSON.parse(raw);
+    localStorage.setItem('sa_report', JSON.stringify({ report, ts: Date.now() }));
+    renderReport(report);
+  } catch(err) {
+    clearInterval(iv);
+    console.error(err);
+    alert('Something went wrong. Check your API key and try again.');
+    goTo('intake');
+  }
+}
+
+/* ─── RENDER REPORT ─── */
+function renderReport(r) {
+  document.getElementById('rpt-headline').textContent = r.headline || 'Your AI Stack';
+  document.getElementById('rpt-summary').textContent = r.summary || '';
+
+  const grid = document.getElementById('tools-grid');
+  grid.innerHTML = '';
+
+  const order = { essential:0, recommended:1, optional:2 };
+  const sorted = [...r.stack].sort((a,b) => (order[a.priority]??1)-(order[b.priority]??1));
+
+  sorted.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 't-card ' + (t.priority || 'recommended');
+    card.innerHTML = `
+      <div class="t-top">
+        <div class="t-name">${esc(t.tool)}</div>
+        <span class="t-badge ${t.priority}">${t.priority}</span>
+      </div>
+      <div class="t-cat">${esc(t.category)}</div>
+      <div class="t-tagline">${esc(t.tagline)}</div>
+      <div class="t-reason">${esc(t.reason)}</div>
+      <div class="t-roi"><span class="t-roi-arrow">→</span>${esc(t.roi)}</div>
+      <div class="t-pricing"><span class="t-pricing-dot">$</span>${esc(t.pricing || '—')}</div>
+      <a class="t-link" href="${esc(affiliateUrl(t.tool, t.url))}" target="_blank" rel="noopener noreferrer">
+        Visit ${esc(t.tool)}
+        <svg width="9" height="9" viewBox="0 0 16 16" fill="none">
+          <path d="M3 3h10v10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </a>`;
+    grid.appendChild(card);
+  });
+
+  goTo('report');
+  window.scrollTo(0,0);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── SAVE / SHARE ─── */
+function saveLocal() {
+  const saved = localStorage.getItem('sa_report');
+  if (saved) alert('Report saved to your browser. It will be here next time you visit.');
+}
+
+function copyLink() {
+  const saved = localStorage.getItem('sa_report');
+  if (!saved) return;
+  const { report } = JSON.parse(saved);
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(report))));
+  const url = location.origin + location.pathname + '#r=' + encoded;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.classList.add('flash');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('flash'); btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M6 3H3v10h10v-3M10 2h4v4M14 2L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Share`; }, 2000);
+  });
+}
+
+/* ─── INIT ─── */
+window.addEventListener('load', () => {
+
+  // Shared report in URL hash
+  const h = location.hash;
+  if (h.startsWith('#r=')) {
+    try {
+      const report = JSON.parse(decodeURIComponent(escape(atob(h.slice(3)))));
+      renderReport(report);
+      return;
+    } catch(e) { /* ignore */ }
+  }
+
+  // Previously saved report — show landing + subtle indicator
+  const saved = localStorage.getItem('sa_report');
+  if (saved) {
+    try {
+      const { report, ts } = JSON.parse(saved);
+      const age = Math.round((Date.now()-ts)/(1000*60*60));
+      const landingNote = document.querySelector('.hero-note');
+      if (landingNote) {
+        const btn = document.createElement('button');
+        btn.style.cssText = 'background:none;border:none;color:var(--gold);font-family:inherit;font-size:10px;letter-spacing:0.06em;cursor:pointer;display:block;margin:12px auto 0;';
+        btn.textContent = `↑ View your last report (${age < 2 ? 'recent' : age + 'h ago'})`;
+        btn.onclick = () => renderReport(report);
+        landingNote.parentNode.insertBefore(btn, landingNote.nextSibling);
+      }
+    } catch(e) {}
+  }
+});
+</script>
+</body>
+</html>
